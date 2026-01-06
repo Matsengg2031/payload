@@ -25,7 +25,7 @@ async function handler(req: Request): Promise<Response> {
   }
   
   if (path.startsWith("/api/decode")) {
-    return handleDecode(req);
+    return await handleDecode(req);
   }
 
   if (path === "/api/v1/update") {
