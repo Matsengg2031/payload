@@ -1,18 +1,19 @@
-node_modules/
-__pycache__/
-*.pyc
-.DS_Store
-.env
+# Ignore EVERYTHING by default
+*
 
+# Allow Deno Server Files
+!main.ts
+!api/
+!api/**
 
-# User Data & Config
-note.txt
-
-loot.py
-# config.py # Uncomment to exclude config if it has keys
-
-# Generated Artifacts
-loot_*.txt
-payload.bin
-test_server.py
-
+# Explicitly ignore everything else (redundant but safe)
+python_client/
+dist/
+build/
+deploy/
+encoder/
+utilities/
+*.py
+*.bat
+*.spec
+*.txt
