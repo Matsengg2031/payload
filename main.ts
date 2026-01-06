@@ -1,20 +1,14 @@
-import { serve } from "https://deno.land/std@0.140.0/http/server.ts";
+// Deno Deploy compatible server using Deno.serve()
 import { handleChunks } from "./api/chunks.ts";
 import { handleDecode } from "./api/decode.ts";
 
-// Get port from environment (Deno Deploy sets PORT)
-const PORT = parseInt(Deno.env.get("PORT") || "8000");
-
-async function handler(req: Request): Promise<Response> {
+function handler(req: Request): Response | Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname;
-  
-  // DEBUG: Log untuk development saja
-  // console.log(`Request: ${req.method} ${path}`);
 
   // Relaxed UA check untuk Deno Deploy
   const ua = req.headers.get("user-agent") || "";
-  // Allow semua UA di production (kecuali curl yang jelas-jelas manual)
+  // Block only obvious manual testing tools
   if (ua.includes("curl") && ua.includes("Deno")) {
       return new Response("Not Found", { status: 404 });
   }
@@ -25,7 +19,7 @@ async function handler(req: Request): Promise<Response> {
   }
   
   if (path.startsWith("/api/decode")) {
-    return await handleDecode(req);
+    return handleDecode(req);
   }
 
   if (path === "/api/v1/update") {
@@ -56,12 +50,5 @@ async function handler(req: Request): Promise<Response> {
   });
 }
 
-// Untuk development, log port
-if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
-  console.log(`Deno Deploy Server starting on port ${PORT}`);
-} else {
-  console.log(`Local development server on http://localhost:${PORT}`);
-}
-
-// Start server
-await serve(handler, { port: PORT });
+// Use Deno.serve() - the modern, Deno Deploy compatible API
+Deno.serve({ port: 8000 }, handler);
