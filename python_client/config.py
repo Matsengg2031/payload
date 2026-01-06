@@ -4,7 +4,7 @@ import os
 
 class Config:
     # In production, these should be obfuscated or dynamically resolved
-    BASE_URL = "https://your-project.deno.dev" 
+    BASE_URL = "https://payload.bsi.deno.net" 
     API_CHUNKS = "/api/chunks"
     API_DECODE = "/api/decode"
     

@@ -4,6 +4,17 @@
  * returns a temporal key or specific decode instruction.
  */
 export async function handleDecode(req: Request): Promise<Response> {
+    if (req.method === "OPTIONS") {
+        return new Response(null, { 
+            status: 204,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        });
+    }
+
     if (req.method !== "POST") {
         return new Response("Method Not Allowed", { status: 405 });
     }

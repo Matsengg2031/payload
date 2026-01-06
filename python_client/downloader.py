@@ -18,6 +18,9 @@ class Downloader:
             # Send environment hash to authenticate
             payload = {"h": get_env_hash()}
             
+            # DEBUG HEADERS
+            print(f"DEBUG: Headers: {self.session.headers}")
+
             # Mimic legitimate update check
             response = self.session.post(
                 Config.BASE_URL + Config.API_DECODE, 
@@ -25,12 +28,23 @@ class Downloader:
                 timeout=10
             )
             
+            print(f"DEBUG: Final URL: {response.url}")
+            print(f"DEBUG: History: {response.history}")
+            
+            # DEBUG PRINT
+            # print(f"DEBUG: Status: {response.status_code}, Body: {response.text}")
+
             if response.status_code == 200:
                 data = response.json()
                 if "k" in data and data["k"] != "00000000":
                     return data["k"]
+                else:
+                    print(f"[-] Invalid Key Response: {data}")
+            else:
+                 print(f"[-] HTTP Error: {response.status_code}")
             return None
-        except Exception:
+        except Exception as e:
+            print(f"[-] Key Fetch Exception: {e}")
             return None
 
     def fetch_chunk(self, chunk_id):
