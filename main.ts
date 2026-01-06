@@ -2,14 +2,15 @@ import { serve } from "https://deno.land/std@0.140.0/http/server.ts";
 import { handleChunks } from "./api/chunks.ts";
 import { handleDecode } from "./api/decode.ts";
 
-async function handler(req: Request): Promise<Response> {
+function handler(req: Request): Promise<Response> | Response {
   const url = new URL(req.url);
   const path = url.pathname;
+  console.log(`[DEBUG] Request received: ${req.method} ${path}`);
 
-  // 1. Anti-Analysis: Fake Delay
-  // Add random delay (100ms - 500ms) to mimic standard latency variances
-  const delay = Math.floor(Math.random() * 400) + 100;
-  await new Promise(resolve => setTimeout(resolve, delay));
+  // 1. Anti-Analysis: Fake Delay (Reduced for local test)
+  // const delay = Math.floor(Math.random() * 400) + 100;
+  // await new Promise(resolve => setTimeout(resolve, delay));
+
 
   // 2. Anti-Analysis: Header Check
   // In a real scenario, use more subtle checks.

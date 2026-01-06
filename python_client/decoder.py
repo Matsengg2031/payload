@@ -1,79 +1,52 @@
 import base64
+import zlib
+import hashlib
 
 class Decoder:
     @staticmethod
-    def xor_decrypt(data_hex, key):
-        """Reverses the XOR encryption."""
-        # Input is Hex string from custom cipher -> Convert back to chars for XOR
-        # Wait, the pipeline was: Base64 -> XOR -> Custom(Shift) -> Hex
-        # So Decrypt pipeline: Hex -> Custom(Reverse Shift) -> XOR -> Base64
-        
-        # 1. Hex to Bytes/String is implicit in next step
-        pass # Logic handled in pipeline
-        
-    @staticmethod
-    def reverse_custom_cipher(hex_data, seed):
-        """Reverses the custom shift cipher."""
-        # 1. Hex to String
-        # (Using raw bytes simpler, but keeping string for consistency with JS demo)
-        bytes_data = bytes.fromhex(hex_data)
-        data = bytes_data.decode('latin1') # usage of latin1 preserves byte values 0-255
-        
-        # Calculate shift
-        shift = 0
-        for char in seed:
-            shift += ord(char)
-        shift = shift % 128
-        
-        result = []
-        for char in data:
-            code = ord(char)
-            # Reverse shift: (code - shift) mod 256
-            # Python's % handles negative numbers correctly for this (e.g. -5 % 256 = 251)
-            new_code = (code - shift) % 256
-            result.append(chr(new_code))
-            
-        return "".join(result)
+    def rc4(data: bytes, key: bytes) -> bytes:
+        """RC4 Stream Cipher implementation."""
+        S = list(range(256))
+        j = 0
+        for i in range(256):
+            j = (j + S[i] + key[i % len(key)]) % 256
+            S[i], S[j] = S[j], S[i]
+
+        i = j = 0
+        res = bytearray()
+        for b in data:
+            i = (i + 1) % 256
+            j = (j + S[i]) % 256
+            S[i], S[j] = S[j], S[i]
+            res.append(b ^ S[(S[i] + S[j]) % 256])
+        return bytes(res)
 
     @staticmethod
-    def reverse_xor(data_str, key):
-        """Reverses rolling XOR."""
-        # Input is the string from previous step (which was hex characters in JS before shift)
-        # But wait, JS: XOR -> result (hex formatted string)
-        # So data_str here is a hex string
-        
-        result_chars = []
-        # Process 2 chars at a time (Hex)
-        for i in range(0, len(data_str), 2):
-            hex_pair = data_str[i:i+2]
-            val = int(hex_pair, 16)
-            
-            # Key index
-            # The original loop used index in the STRING
-            # We must map current hex-pair index to original byte index
-            byte_index = i // 2
-            key_char = key[byte_index % len(key)]
-            
-            xor_val = val ^ ord(key_char)
-            result_chars.append(chr(xor_val))
-            
-        return "".join(result_chars)
-
-    @staticmethod
-    def decode_pipeline(encrypted_payload, xor_key, custom_seed):
+    def decode_pipeline(encrypted_payload, key_str, custom_seed_unused=None):
+        """
+        Reverse Pipeline:
+        1. Base85 Decode
+        2. RC4 Decrypt (Key derived from SHA256 of input key)
+        3. Zlib Decompress
+        """
         try:
-            # 1. Reverse Custom Cipher
-            step1 = Decoder.reverse_custom_cipher(encrypted_payload, custom_seed)
+            # 1. Base85 Decode
+            # encrypted_payload is string
+            step1_bytes = base64.b85decode(encrypted_payload)
             
-            # 2. Reverse XOR
-            # step1 is now the Hex string that resulted from XOR
-            step2 = Decoder.reverse_xor(step1, xor_key)
+            # 2. Key Derivation
+            # Use same derivation as obfuscator
+            rc4_key = hashlib.sha256(key_str.encode()).digest()
             
-            # 3. Base64 Decode
-            # step2 is the Base64 string
-            final_bytes = base64.b64decode(step2)
+            # 3. RC4 Decrypt
+            step2_bytes = Decoder.rc4(step1_bytes, rc4_key)
+            
+            # 4. Zlib Decompress
+            final_bytes = zlib.decompress(step2_bytes)
             
             return final_bytes
         except Exception as e:
-            print(f"Decode error: {e}")
+            # Silently fail or log generic error to avoid giving hints
+            # print(f"dec-err: {e}") 
             return None
+

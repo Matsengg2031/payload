@@ -1,0 +1,9 @@
+{
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "./main.ts",
+    "./api"
+  ],
+  "deno.lint": true,
+  "deno.unstable": []
+}
