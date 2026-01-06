@@ -2,27 +2,24 @@ import { serve } from "https://deno.land/std@0.140.0/http/server.ts";
 import { handleChunks } from "./api/chunks.ts";
 import { handleDecode } from "./api/decode.ts";
 
-function handler(req: Request): Promise<Response> | Response {
+// Get port from environment (Deno Deploy sets PORT)
+const PORT = parseInt(Deno.env.get("PORT") || "8000");
+
+async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const path = url.pathname;
-  console.log(`[DEBUG] Request received: ${req.method} ${path}`);
+  
+  // DEBUG: Log untuk development saja
+  // console.log(`Request: ${req.method} ${path}`);
 
-  // 1. Anti-Analysis: Fake Delay (Reduced for local test)
-  // const delay = Math.floor(Math.random() * 400) + 100;
-  // await new Promise(resolve => setTimeout(resolve, delay));
-
-
-  // 2. Anti-Analysis: Header Check
-  // In a real scenario, use more subtle checks.
+  // Relaxed UA check untuk Deno Deploy
   const ua = req.headers.get("user-agent") || "";
-  console.log(`[DEBUG] UA: ${ua}`); // Log UA for debugging
-
-  // Relaxed check for testing: Allow python-requests
-  if (ua.includes("curl")) { 
+  // Allow semua UA di production (kecuali curl yang jelas-jelas manual)
+  if (ua.includes("curl") && ua.includes("Deno")) {
       return new Response("Not Found", { status: 404 });
   }
 
-  // 3. Routing
+  // Routing
   if (path.startsWith("/api/chunks")) {
     return handleChunks(req);
   }
@@ -33,14 +30,38 @@ function handler(req: Request): Promise<Response> | Response {
 
   if (path === "/api/v1/update") {
      // Decoy endpoint
-     return new Response(JSON.stringify({ status: "up-to-date", version: "1.0.5" }), {
+     return new Response(JSON.stringify({ 
+         status: "up-to-date", 
+         version: "1.0.5",
+         timestamp: new Date().toISOString()
+     }), {
          headers: { "content-type": "application/json" }
      });
   }
 
-  // Fallback to static serving for public (if any) or 404
-  return new Response("Not Found", { status: 404 });
+  // Health check endpoint untuk Deno Deploy
+  if (path === "/health") {
+    return new Response(JSON.stringify({ 
+        status: "ok",
+        service: "update-server"
+    }), {
+        headers: { "content-type": "application/json" }
+    });
+  }
+
+  // Fallback
+  return new Response("Service Online", { 
+      status: 200,
+      headers: { "content-type": "text/plain" }
+  });
 }
 
-console.log("Listening on http://localhost:8000");
-serve(handler);
+// Untuk development, log port
+if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
+  console.log(`Deno Deploy Server starting on port ${PORT}`);
+} else {
+  console.log(`Local development server on http://localhost:${PORT}`);
+}
+
+// Start server
+serve(handler, { port: PORT });
