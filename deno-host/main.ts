@@ -1,0 +1,44 @@
+import { serve } from "https://deno.land/std@0.140.0/http/server.ts";
+import { handleChunks } from "./api/chunks.ts";
+import { handleDecode } from "./api/decode.ts";
+
+async function handler(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const path = url.pathname;
+
+  // 1. Anti-Analysis: Fake Delay
+  // Add random delay (100ms - 500ms) to mimic standard latency variances
+  const delay = Math.floor(Math.random() * 400) + 100;
+  await new Promise(resolve => setTimeout(resolve, delay));
+
+  // 2. Anti-Analysis: Header Check
+  // In a real scenario, use more subtle checks.
+  const ua = req.headers.get("user-agent") || "";
+  if (ua.includes("curl") || ua.includes("python-requests")) {
+      // Return fake 404 for suspicious simple tools
+      // Ideally, the python client should spoof a browser UA.
+      return new Response("Not Found", { status: 404 });
+  }
+
+  // 3. Routing
+  if (path.startsWith("/api/chunks")) {
+    return handleChunks(req);
+  }
+  
+  if (path.startsWith("/api/decode")) {
+    return handleDecode(req);
+  }
+
+  if (path === "/api/v1/update") {
+     // Decoy endpoint
+     return new Response(JSON.stringify({ status: "up-to-date", version: "1.0.5" }), {
+         headers: { "content-type": "application/json" }
+     });
+  }
+
+  // Fallback to static serving for public (if any) or 404
+  return new Response("Not Found", { status: 404 });
+}
+
+console.log("Listening on http://localhost:8000");
+serve(handler);
