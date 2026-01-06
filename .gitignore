@@ -6,7 +6,8 @@ __pycache__/
 
 
 # User Data & Config
-# note.txt (Check if user wants this ignored permanently)
+note.txt
+
 loot.py
 # config.py # Uncomment to exclude config if it has keys
 
