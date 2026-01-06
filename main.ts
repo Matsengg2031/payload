@@ -43,4 +43,4 @@ function handler(req: Request): Promise<Response> | Response {
 }
 
 console.log("Listening on http://localhost:8000");
-serve(handler);
+await serve(handler);
