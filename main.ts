@@ -15,9 +15,10 @@ function handler(req: Request): Promise<Response> | Response {
   // 2. Anti-Analysis: Header Check
   // In a real scenario, use more subtle checks.
   const ua = req.headers.get("user-agent") || "";
-  if (ua.includes("curl") || ua.includes("python-requests")) {
-      // Return fake 404 for suspicious simple tools
-      // Ideally, the python client should spoof a browser UA.
+  console.log(`[DEBUG] UA: ${ua}`); // Log UA for debugging
+
+  // Relaxed check for testing: Allow python-requests
+  if (ua.includes("curl")) { 
       return new Response("Not Found", { status: 404 });
   }
 

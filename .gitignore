@@ -3,6 +3,15 @@ __pycache__/
 *.pyc
 .DS_Store
 .env
+
+
+# User Data & Config
 note.txt
+loot.py
+# config.py # Uncomment to exclude config if it has keys
+
+# Generated Artifacts
 loot_*.txt
 payload.bin
+test_server.py
+
